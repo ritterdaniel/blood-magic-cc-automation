@@ -1,0 +1,10 @@
+[Application]
+appFolder = bma
+
+[Files]
+ui/progressbar.lua
+ui/textbox.lua
+
+[TestFiles]
+ui/test_progressbar.lua
+ui/test_textbox.lua
