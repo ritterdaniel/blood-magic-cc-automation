@@ -1,38 +1,42 @@
--- a simple installer using parts of code from wget.lua from CC: Tweaked mod
+-- a simple installer ofr CC: Tweaked Apps, based on wget.lua from CC: Tweaked
+local BUFFER_SIZE = 1024
 
 local function usage()
     print ([[
-installer.lua [-h] [-t] [-p <path>] [-b <git branch>]
+installer.lua [-h] [-f] [-t] [-p <path>] [-b <git branch>]
 
 Options:
 -h              - print usage
+-f              - force reinstall
 -t              - install additional test files
 -p <path>       - target path for application, default = current location
 -b <git branch> - git branch to be installed from, default = main
 ]])
 end
 
-local function get(sUrl, binary)
-    -- Check if the URL is valid
-    local ok, err = http.checkURL(sUrl)
+local function get(url, binaryMode)
+    local ok, err = http.checkURL(url)
     if not ok then
         print(err or "Invalid URL.")
         return
     end
 
-    print("Connecting to " .. sUrl .. "... ")
+    print("Connecting to " .. url .. "... ")
 
-    local response = http.get(sUrl , nil , binary)
+    local response = http.get(url , nil , binaryMode)
     if not response then
-        print("Download failed: " .. sUrl)
+        print("Connect failed.")
+        return nil
+    end
+    local status, message = response.getResponseCode()
+    if status ~= 200 then
+        print("Download failed: " .. status .. ": " ..message)
         return nil
     end
 
     print("Success.")
 
-    local sResponse = response.readAll()
-    response.close()
-    return sResponse or ""
+    return response
 end
 
 local function getAppConfiguration(data, includeTestFiles)
@@ -41,7 +45,7 @@ local function getAppConfiguration(data, includeTestFiles)
         files = {}
     }
     local line = ""
-    local state = nil
+    local state
 
     repeat
         if string.match(line, "^%[Application%]") then
@@ -63,9 +67,34 @@ local function getAppConfiguration(data, includeTestFiles)
         end
 
         line = data.readLine()
-    until line == nil
+    until not line
 
     return conf
+end
+
+local function downloadFiles(url, targetPath, files)
+    for _, appFile in pairs(files) do
+        local fileUrl = url .. "/" .. appFile
+        local res = get(fileUrl, true)
+        if not res then
+            return
+        end
+
+        local fh, err = fs.open(targetPath .. "/" .. appFile, "wb")
+        if not fh then
+            print("Cannot save file '" .. appFile .. "': " .. err)
+            return
+        end
+        local buffer = ""
+        while buffer do
+            buffer = res.read(BUFFER_SIZE)
+            if buffer then
+                fh.write(buffer)
+            end
+        end
+        fh.flush()
+        fh.close()
+    end
 end
 
 local function dump(o)
@@ -84,8 +113,9 @@ end
 local branch = "main"
 local baseUrl = "https://raw.githubusercontent.com/ritterdaniel/blood-magic-cc-automation"
 local appFile = "app.ccinstall"
-local targetPath = nil
+local targetPath
 local installTestfiles = false
+local forceReinstall = false
 
 if not http then
     print("Installer requires the http API")
@@ -95,31 +125,33 @@ end
 
 local params = {...}
 local i = 1
-local fail = false
+local exit = false
 
 while i <= #params do
     local param = params[i]
 
     if param == "-h" then
-        usage()
+        exit = true
         break
+    elseif param == "-f" then
+        forceReinstall = true
     elseif param == "-t" then
         installTestfiles = true
-    elseif param == "-p" and i + 1 >= #params then
+    elseif param == "-p" and #params >= i + 1  then
         i = i +1
         targetPath = params[i]
-    elseif param == "-b" and i + 1 >= #params then
+    elseif param == "-b" and #params >= i + 1 then
         i = i +1
         branch = params[i]
     else
         print("Unknown option or missing argument for '" .. param .. "'")
-        fail = true
+        exit = true
         break
     end
     i = i + 1
 end
 
-if fail then
+if exit then
     usage()
     return
 end
@@ -129,7 +161,26 @@ local appConfUrl = url .."/" .. appFile
 
 local data = get(appConfUrl, false)
 if not data then
+    print("App install file seems to be empty.")
     return
 end
 local appConf = getAppConfiguration(data, installTestfiles)
 print(dump(appConf))
+
+local appInstallPath
+if targetPath then
+    appInstallPath = targetPath
+else
+    appInstallPath = appConf.app.appFolder
+end
+if fs.exists(appInstallPath) then
+    if not forceReinstall then
+        print("App directory '" .. appInstallPath .. "' already exists. ")
+        return
+    else
+        fs.delete(appInstallPath)
+    end
+end
+fs.makeDir(appInstallPath)
+
+downloadFiles(url, appInstallPath, appConf.files)
