@@ -32,7 +32,8 @@ function TextBox:new(monitor, xStart, yStart, width)
     o.y = yStart
     local maxWidth, _ = monitor.getSize()
     o.width = math.min(xStart + width - 1, maxWidth)
-    self._rightFormat = string.format("%%-%ds", o.width)
+    self._rightFormat = string.format("%%%ds", o.width)
+    self._leftFormat = string.format("%%-%ds", o.width)
     setmetatable(o, self)
     self.__index = self
     return o
@@ -43,15 +44,15 @@ function TextBox:_paint()
     local currentTc = self.monitor.getTextColor()
     self.monitor.setBackgroundColor(self.backgroundColor)
     self.monitor.setTextColor(self.textColor)
-    local newTextLength = string.len(self._text)
-    if newTextLength < self._textLength then
-        self.monitor.setCursorPos(self.x + newTextLength, self.y)
-        print("P " .. "write space at x:" .. (self.x + newTextLength) .. " for " .. (self._textLength - newTextLength) .. " chars")
-        for _ = 1, self._textLength - newTextLength do
-            self.monitor.write(" ")
-        end
-        self._textLength = newTextLength
-    end
+    -- local newTextLength = string.len(self._text)
+    -- if newTextLength < self._textLength then
+    --     self.monitor.setCursorPos(self.x + newTextLength, self.y)
+    --     print("P " .. "write space at x:" .. (self.x + newTextLength) .. " for " .. (self._textLength - newTextLength) .. " chars")
+    --     for _ = 1, self._textLength - newTextLength do
+    --         self.monitor.write(" ")
+    --     end
+    --     self._textLength = newTextLength
+    -- end
     self.monitor.setCursorPos(self.x, self.y)
     self.monitor.write(self._text)
     print("P x:" .. self.x .. " y:" .. self.y .. " t:'" .. self._text .. "'")
@@ -71,9 +72,9 @@ function TextBox:_justify(text)
             for _ = 1, leftPadding do
                 justifiedText = justifiedText .. " "
             end
-            justifiedText = justifiedText .. text
+            justifiedText = string.format(self._leftFormat, justifiedText .. text)
         else
-            justifiedText = justifiedText
+            justifiedText = string.format(self._leftFormat, text)
         end
     end
     return justifiedText
