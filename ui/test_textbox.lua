@@ -1,16 +1,16 @@
-require "textbox"
+local TextBox = require "textbox"
 
 -- test
 local monitor = peripheral.find("monitor")
 monitor.setBackgroundColor(colors.black)
 monitor.reset()
-local tb = TextBox:new(monitor, 1, 2, 10)
-tb:setText("Test")
+local textBox = TextBox:new(monitor, 1, 2, 10)
+textBox:setText("Test")
 
-tb = TextBox:new(monitor, 1, 4, 10)
-tb.orientation = tb.CENTER
-tb:setText("Test")
+textBox = TextBox:new(monitor, 1, 4, 10)
+textBox.orientation = textBox.CENTER
+textBox:setText("Test")
 
-tb = TextBox:new(monitor, 1, 6, 10)
-tb.orientation = tb.RIGHT
-tb:setText("Test")
+textBox = TextBox:new(monitor, 1, 6, 10)
+textBox.orientation = textBox.RIGHT
+textBox:setText("Test")

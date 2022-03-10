@@ -1,4 +1,4 @@
-local progressBar = {
+local ProgressBar = {
     monitor = nil,
     width = -1,
     x = 1,
@@ -8,7 +8,7 @@ local progressBar = {
     color = colors.yellow
 }
 
-function progressBar:new(monitor, y)
+function ProgressBar:new(monitor, y)
     local o = {}
     o.monitor = monitor
     o.y = y
@@ -19,7 +19,7 @@ function progressBar:new(monitor, y)
     return o
 end
 
-function progressBar:reset()
+function ProgressBar:reset()
     local currentBc = self.monitor.getBackgroundColor()
     local currentTc = self.monitor.getTextColor()
     self.monitor.setCursorPos(self.x, self.y)
@@ -32,7 +32,7 @@ function progressBar:reset()
     self.monitor.setTextColor(currentTc)
 end
 
-function progressBar:_writePercentage(percentage)
+function ProgressBar:_writePercentage(percentage)
     local pText = string.format("%03d", percentage)
     for offset = 0, 2 do
         local xPos = self.center + offset
@@ -48,7 +48,7 @@ function progressBar:_writePercentage(percentage)
     end
 end
 
-function progressBar:progress(percentage)
+function ProgressBar:progress(percentage)
     local newOffset = math.floor(percentage * self.width / 100)
     if newOffset < self.offset then
         self:reset()
@@ -64,3 +64,5 @@ function progressBar:progress(percentage)
     end
     self:_writePercentage(percentage)
 end
+
+return ProgressBar

@@ -5,8 +5,8 @@ local Orientation = {
 }
 
 local TextBox = {
-    backgroundColor = colors.black,
-    textColor = colors.white,
+    -- backgroundColor = colors.black,
+    -- textColor = colors.white,
     orientation = Orientation.LEFT,
     _text = "",
     _textLength = 0
@@ -81,3 +81,5 @@ function TextBox:reset()
     self._text = {}
     self:_paint()
 end
+
+return TextBox
