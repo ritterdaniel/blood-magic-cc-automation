@@ -16,36 +16,37 @@ local function resetUI()
     local label = TextBox:new(monitor, 1, 1, 18)
     label.backgroundColor = colors.red
     label.textColor = colors.yellow
+    label.orientation = TextBox.Orientation.CENTER
     label:setText("Blood Magic Altar")
 
     label = TextBox:new(monitor, 1, 3, 18)
     label.backgroundColor = colors.green
-    label:setText("Life Essence Fill Level")
+    label:setText("Altar Fill Level")
 
     local progressBar = ProgressBar:new(monitor, 4)
     progressBar:reset()
 
     label = TextBox:new(monitor, 1, 5, 18)
     label.backgroundColor = colors.green
-    label:setText("")
+    label:setText(" ")
 
     label = TextBox:new(monitor, 1, 7, 18)
     label.textColor = colors.green
-    label:setText("Current item in Altar")
+    label:setText("Item IN")
 
     label = TextBox:new(monitor, 1, 8, 18)
     label:setText("None")
 
     label = TextBox:new(monitor, 1, 10, 18)
     label.textColor = colors.green
-    label:setText("Last item from Altar")
+    label:setText("Item OUT")
 
     label = TextBox:new(monitor, 1, 11, 18)
     label:setText("None")
 
     label = TextBox:new(monitor, 1, 12, 18)
     label.backgroundColor = colors.red
-    label:setText("")
+    label:setText(" ")
 end
 
 local function getTank(container, slot)
