@@ -5,8 +5,8 @@ local Orientation = {
 }
 
 local TextBox = {
-    -- backgroundColor = colors.black,
-    -- textColor = colors.white,
+    backgroundColor = colors.black,
+    textColor = colors.white,
     orientation = Orientation.LEFT,
     _text = "",
     _textLength = 0
@@ -68,7 +68,7 @@ function TextBox:setText(text)
     local textLength = string.len(text)
     local trimmedText
     if textLength <=self.width then
-        trimmedText = {text}
+        trimmedText = text
     else
         local tEnd = math.min(textLength, self.width)
         trimmedText = string.sub(text, 1, tEnd)
