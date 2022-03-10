@@ -12,7 +12,7 @@ textBox:setText("Test")
 
 textBox = TextBox:new(monitor, 1, 4, width)
 textBox.orientation = textBox.Orientation.CENTER
-textBox.backgroundColor(colors.red)
+textBox.backgroundColor = colors.red
 textBox:setText("Test")
 
 textBox = TextBox:new(monitor, 1, 6, width)

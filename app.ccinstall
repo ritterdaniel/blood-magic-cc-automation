@@ -4,6 +4,7 @@ appFolder = bma
 [Files]
 ui/progressbar.lua
 ui/textbox.lua
+altar_automat.lua
 
 [TestFiles]
 ui/test_progressbar.lua
