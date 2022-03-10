@@ -3,7 +3,7 @@ local TextBox = require "textbox"
 -- test
 local monitor = peripheral.find("monitor")
 monitor.setBackgroundColor(colors.black)
-monitor.reset()
+monitor.clear()
 local textBox = TextBox:new(monitor, 1, 2, 10)
 textBox:setText("Test")
 
