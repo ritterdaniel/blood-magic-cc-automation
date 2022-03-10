@@ -35,7 +35,6 @@ function TextBox:new(monitor, xStart, yStart, width)
     self._rightFormat = string.format("%%-%ds", o.width)
     setmetatable(o, self)
     self.__index = self
-    dump(o)
     return o
 end
 
@@ -47,6 +46,7 @@ function TextBox:_paint()
     local newTextLength = string.len(self._text)
     if newTextLength < self._textLength then
         self.monitor.setCursorPos(self.x + newTextLength, self.y)
+        print("P " .. "write space at x:" .. (self.x + newTextLength) .. " for " .. (self._textLength - newTextLength) .. " chars")
         for _ = 1, self._textLength - newTextLength do
             self.monitor.write(" ")
         end
@@ -54,6 +54,7 @@ function TextBox:_paint()
     end
     self.monitor.setCursorPos(self.x, self.y)
     self.monitor.write(self._text)
+    print("P x:" .. self.x .. " y:" .. self.y .. " t:'" .. self._text .. "'")
     self.monitor.setBackgroundColor(currentBc)
     self.monitor.setTextColor(currentTc)
 end
@@ -88,7 +89,7 @@ function TextBox:setText(text)
         trimmedText = string.sub(text, 1, tEnd)
     end
     self._text = self:_justify(trimmedText)
-    dump(self)
+    print(self._text)
     self:_paint()
 end
 
