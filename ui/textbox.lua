@@ -73,7 +73,7 @@ function TextBox:setText(text)
         local tEnd = math.min(textLength, self.width)
         trimmedText = string.sub(text, 1, tEnd)
     end
-    self._text = {self:_justify(trimmedText)}
+    self._text = self:_justify(trimmedText)
     self:_paint()
 end
 
