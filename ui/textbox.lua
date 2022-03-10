@@ -12,6 +12,19 @@ local TextBox = {
     _textLength = 0
 }
 
+local function dump(o)
+    if type(o) == 'table' then
+        local s = '{ '
+        for k,v in pairs(o) do
+            if type(k) ~= 'number' then k = '"'..k..'"' end
+            s = s .. '['..k..'] = ' .. dump(v) .. ','
+        end
+        return s .. '} '
+    else
+        return tostring(o)
+    end
+end
+
 function TextBox:new(monitor, xStart, yStart, width)
     local o = {}
     o.monitor = monitor
@@ -22,6 +35,7 @@ function TextBox:new(monitor, xStart, yStart, width)
     self._rightFormat = string.format("%%-%ds", o.width)
     setmetatable(o, self)
     self.__index = self
+    dump(o)
     return o
 end
 
@@ -74,11 +88,12 @@ function TextBox:setText(text)
         trimmedText = string.sub(text, 1, tEnd)
     end
     self._text = self:_justify(trimmedText)
+    dump(self)
     self:_paint()
 end
 
 function TextBox:reset()
-    self._text = {}
+    self._text = ""
     self:_paint()
 end
 
