@@ -114,10 +114,11 @@ local function crafter()
 
             debug("Crafter - FL:", fillLevel, " IA:", inItemAvailable, " CA:", crafterAvailable)
             if fillLevel == 100 and inItemAvailable and crafterAvailable then
+                inItemAvailable = false
+                crafterAvailable = false
+                fillLevel = 0
                 itemInLabel:setText(item.name)
                 inChest.pushItems(altarName, item.slot, 1)
-                inItemAvailable = false
-                fillLevel = 0
             end
         end
     until event == "terminate"
@@ -145,19 +146,26 @@ local function craftedItemTaker()
     local outChest = devices.outChest
     local itemOutLabel = TextBox:new(monitor, 1, 10, 18)
     itemOutLabel:setText(nil)
+    local subscribedEvents = {
+        timer = true,
+        redstone = true}
 
     repeat
-        os.queueEvent("crafterAvailable")
-        local event = coroutine.yield("redstone")
-        debug("craftedItemTaker - Event " .. event)
-        repeat
-            local slot, itemName = nextItem(altar)
-            if slot then
-                local item = altar.getItemDetail(slot)
-                itemOutLabel:setText(item.displayName)
-                outChest.pullItems(altarName, slot, 1)
-            end
-        until not slot
+        local event = coroutine.yield()
+        if event == "redstone" then
+            debug("craftedItemTaker - Event " .. event)
+            repeat
+                local slot, itemName = nextItem(altar)
+                if slot then
+                    local item = altar.getItemDetail(slot)
+                    itemOutLabel:setText(item.displayName)
+                    outChest.pullItems(altarName, slot, 1)
+                end
+            until not slot
+        end
+        if subscribedEvents[event] then
+            os.queueEvent("crafterAvailable")
+        end
     until event == "terminate"
 end
 
