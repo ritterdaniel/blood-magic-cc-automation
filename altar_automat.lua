@@ -69,16 +69,15 @@ local function runAutomation()
 
     while true do
         repeat
-            os.sleep(0.5)
-        until tank.fillLevel() >= maxFillLevel
+            local timerId = os.startTimer(.5)
+            local event, eventId = os.pullEvent("timer")
+        until eventId == timerId and tank.fillLevel() >= maxFillLevel
         local slot, itemName
         repeat
-            os.sleep(0.5)
+            local timerId = os.startTimer(.5)
+            local event, eventId = os.pullEvent("timer")
             slot, itemName = nextItem(inChest)
-            if slot ~= nil then
-                break
-            end
-        until slot
+        until eventId == timerId and slot
         itemInLabel:setText(itemName)
         inChest.pushItems(altarName, slot, 1)
 
@@ -119,7 +118,11 @@ local function monitorTankLevel()
     while true do
         local fillPercentage = round(tank.fillLevel() * 100 / maxFillLevel)
         progressBar:progress(fillPercentage)
-        os.sleep(.5)
+        local timerID = os.startTimer(.5)
+        local event, id
+        repeat
+            event, id = os.pullEvent("timer")
+        until id == timerID
     end
 end
 
