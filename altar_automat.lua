@@ -19,7 +19,7 @@ local function initUi()
     label.backgroundColor = colors.green
     label:setText("Current Item IN")
 
-    label = TextBox:new(monitor, 1, 8, 18)
+    label = TextBox:new(monitor, 1, 9, 18)
     label.backgroundColor = colors.green
     label:setText("Last Item OUT")
 
@@ -64,7 +64,7 @@ local function runAutomation()
 
     local itemInLabel = TextBox:new(monitor, 1, 7, 18)
     itemInLabel:setText("None")
-    local itemOutLabel = TextBox:new(monitor, 1, 9, 18)
+    local itemOutLabel = TextBox:new(monitor, 1, 10, 18)
     itemOutLabel:setText("None")
 
     while true do
