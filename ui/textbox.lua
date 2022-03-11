@@ -1,3 +1,4 @@
+local strings = require "cc.strings"
 
 local TextBox = {
     Orientation = {
@@ -31,14 +32,6 @@ function TextBox:_paint()
     local currentTc = self.monitor.getTextColor()
     self.monitor.setBackgroundColor(self.backgroundColor)
     self.monitor.setTextColor(self.textColor)
-    -- local newTextLength = string.len(self._text)
-    -- if newTextLength < self._textLength then
-    --     self.monitor.setCursorPos(self.x + newTextLength, self.y)
-    --     for _ = 1, self._textLength - newTextLength do
-    --         self.monitor.write(" ")
-    --     end
-    --     self._textLength = newTextLength
-    -- end
     self.monitor.setCursorPos(self.x, self.y)
     self.monitor.write(self._text)
     self.monitor.setBackgroundColor(currentBc)
@@ -66,14 +59,10 @@ function TextBox:_justify(text)
 end
 
 function TextBox:setText(text)
-    local textLength = string.len(text)
-    local trimmedText
-    if textLength <=self.width then
-        trimmedText = text
-    else
-        local tEnd = math.min(textLength, self.width)
-        trimmedText = string.sub(text, 1, tEnd)
+    if not text then
+        text = "None"
     end
+    local trimmedText = strings.ensure_width(text, self.width)
     self._text = self:_justify(trimmedText)
     self:_paint()
 end
