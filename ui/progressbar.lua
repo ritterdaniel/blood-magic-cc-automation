@@ -19,7 +19,7 @@ function ProgressBar:new(monitor, y)
     return o
 end
 
-function ProgressBar:reset()
+function ProgressBar:init()
     local currentBc = self.monitor.getBackgroundColor()
     local currentTc = self.monitor.getTextColor()
     self.monitor.setCursorPos(self.x, self.y)
@@ -51,7 +51,7 @@ end
 function ProgressBar:progress(percentage)
     local newOffset = math.floor(percentage * self.width / 100)
     if newOffset < self.offset then
-        self:reset()
+        self:init()
     end
     local diff = newOffset - self.offset
     if diff > 0 then

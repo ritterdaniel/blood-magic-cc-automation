@@ -39,21 +39,24 @@ function TextBox:_paint()
 end
 
 function TextBox:_justify(text)
+    local trimmedText = string.sub(text, 1, self.width)
     local justifiedText = ""
-    local textLength = string.len(text)
+    local textLength = string.len(trimmedText)
     if textLength < self.width then
         if self.orientation == self.Orientation.RIGHT then
-            justifiedText = string.format(self._rightFormat, text)
+            justifiedText = string.format(self._rightFormat, trimmedText)
         elseif self.orientation == self.Orientation.CENTER then
             local remainingSpace = self.width - textLength
             local leftPadding = math.floor(remainingSpace / 2)
             for _ = 1, leftPadding do
                 justifiedText = justifiedText .. " "
             end
-            justifiedText = string.format(self._leftFormat, justifiedText .. text)
+            justifiedText = string.format(self._leftFormat, justifiedText .. trimmedText)
         else
-            justifiedText = string.format(self._leftFormat, text)
+            justifiedText = string.format(self._leftFormat, trimmedText)
         end
+    else
+        justifiedText = trimmedText
     end
     return justifiedText
 end
@@ -62,8 +65,7 @@ function TextBox:setText(text)
     if not text then
         text = "None"
     end
-    local trimmedText = strings.ensure_width(text, self.width)
-    self._text = self:_justify(trimmedText)
+    self._text = self:_justify(text)
     self:_paint()
 end
 

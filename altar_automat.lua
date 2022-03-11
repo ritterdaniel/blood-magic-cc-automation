@@ -1,7 +1,7 @@
 local TextBox = require("ui/textbox")
 local ProgressBar = require("ui/progressbar")
 
-local function newUi()
+local function initUi()
     local monitor = peripheral.find("monitor")
     monitor.setBackgroundColor(colors.black)
     monitor.clear()
@@ -60,7 +60,7 @@ local function runAutomation()
     local inChest = peripheral.wrap("back")
     local outChest = peripheral.wrap("left")
     local maxFillLevel = 10000
-    local tank = getTank(altar)
+    local tank = getTank(altar, 1)
     if tank == nil then
         print("No tank found")
         return
@@ -110,7 +110,7 @@ end
 local function monitorTankLevel()
     local monitor = peripheral.find("monitor")
     local altar = peripheral.wrap("bottom")
-    local tank = getTank(altar)
+    local tank = getTank(altar, 1)
     local maxFillLevel = 10000
     if tank == nil then
         print("No tank found")
@@ -118,16 +118,16 @@ local function monitorTankLevel()
     end
 
     local progressBar = ProgressBar:new(monitor, 4)
-    progressBar:reset()
+    progressBar:init()
 
     while true do
-        local fillPercentage = round(tank.fillLevel * 100 / maxFillLevel)
-        progressBar.progress(fillPercentage)
+        local fillPercentage = round(tank.fillLevel() * 100 / maxFillLevel)
+        progressBar:progress(fillPercentage)
         os.sleep(.5)
     end
 end
 
-newUi()
+initUi()
 parallel.waitForAll(monitorTankLevel(), runAutomation())
 
 
