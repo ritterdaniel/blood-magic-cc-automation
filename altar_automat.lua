@@ -153,7 +153,7 @@ local function craftedItemTaker()
         repeat
             local slot, itemName = nextItem(altar)
             if slot then
-                local item = outChest.getItemDetail(slot)
+                local item = altar.getItemDetail(slot)
                 itemOutLabel:setText(item.displayName)
                 outChest.pullItems(altarName, slot, 1)
             end
