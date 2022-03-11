@@ -130,8 +130,9 @@ local function inChestMonitor()
         debug("inChestMonitor - Event")
         local slot, itemName = nextItem(inChest)
         if slot then
+            local item = inChest.getItemDetail(slot)
             debug("inChestMonitor - Item!")
-            os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
+            os.queueEvent("inItemAvailable", {slot = slot, name = item.displayName})
         end
         local event = coroutine.yield("timer")
     until event[1] == "terminate"
@@ -143,7 +144,7 @@ local function craftedItemTaker()
     local altarName = peripheral.getName(altar)
     local outChest = devices.outChest
     local itemOutLabel = TextBox:new(monitor, 1, 10, 18)
-    itemOutLabel:setText("None")
+    itemOutLabel:setText(nil)
 
     repeat
         os.queueEvent("crafterAvailable")
@@ -152,7 +153,8 @@ local function craftedItemTaker()
         repeat
             local slot, itemName = nextItem(altar)
             if slot then
-                itemOutLabel:setText(itemName)
+                local item = outChest.getItemDetail(slot)
+                itemOutLabel:setText(item.displayName)
                 outChest.pullItems(altarName, slot, 1)
             end
         until not slot
@@ -183,7 +185,7 @@ local function tankDisplay()
     repeat
         local event, tankStatus = coroutine.yield("tankStatus")
         debug("tankDisplay - Event " .. event)
-        if event == "fillLevel" and tankStatus.fillLevel ~= lastFillLevel then
+        if event == "tankStatus" and tankStatus.fillLevel ~= lastFillLevel then
             progressBar:progress(tankStatus.fillLevel)
             lastFillLevel = tankStatus.fillLevel
         end
