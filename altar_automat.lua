@@ -113,7 +113,7 @@ local function crafter()
                 crafterAvailable = true
             end
 
-            debug("Crafter - FL:" .. fillLevel .. " IA:" .. inItemAvailable .. " CA:" .. crafterAvailable)
+            debug("Crafter - FL:", fillLevel, " IA:", inItemAvailable .. " CA:", crafterAvailable)
             if fillLevel == 100 and inItemAvailable and crafterAvailable then
                 itemInLabel:setText(item.name)
                 inChest.pushItems(altarName, item.slot, 1)
@@ -172,21 +172,17 @@ local function tankLevelMonitor()
         return
     end
 
-    local lastFillLevel = 0
     local timerId = 0
     local event
     repeat
-        if event and event[2] == timerId then
+        if event[2] == timerId then
             debug("tankLevelMonitor - Event " .. event[1])
-            local fillLevel = tank.fillLevel()
-            if fillLevel ~= lastFillLevel then
-                local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
-                debug("tankLevelMonitor - fillLevel " .. fillPercentage)
-                os.queueEvent("tankStatus", {fillLevel = fillPercentage})
-                lastFillLevel = fillLevel
-            end
+            local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
+            debug("tankLevelMonitor - fillLevel " .. fillPercentage)
+            os.queueEvent("tankStatus", {fillLevel = fillPercentage})
         end
         timerId = os.startTimer(config.tankMonitorInterval)
+        debug("tankLevelMonitor - Send timer event")
         event = table.pack(coroutine.yield("timer"))
     until event[1] == "terminate"
 end
@@ -196,11 +192,13 @@ local function tankDisplay()
     local progressBar = ProgressBar:new(monitor, 4)
     progressBar:init()
 
+    local lastFillLevel = 0
     repeat
         local event, tankStatus = coroutine.yield("tankStatus")
         debug("tankDisplay - Event " .. event)
-        if event == "fillLevel" then
+        if event == "fillLevel" and tankStatus.fillLevel ~= lastFillLevel then
             progressBar:progress(tankStatus.fillLevel)
+            lastFillLevel = tankStatus.fillLevel
         end
     until event == "terminate"
 end
