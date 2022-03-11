@@ -107,7 +107,7 @@ local function crafter()
                 item = param
                 inItemAvailable = true
             elseif event == "redstone" then
-                itemInLabel.setText(nil)
+                itemInLabel:setText(nil)
             elseif event == "crafterAvailable" then
                 crafterAvailable = true
             end
