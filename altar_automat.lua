@@ -149,9 +149,6 @@ local function craftedItemTaker()
     local outChest = devices.outChest
     local itemOutLabel = TextBox:new(monitor, 1, 10, 18)
     itemOutLabel:setText(nil)
-    local subscribedEvents = {
-        timer = true,
-        redstone = true}
 
     repeat
         local event = coroutine.yield()
@@ -168,9 +165,13 @@ local function craftedItemTaker()
                     outChest.pullItems(altarName, slot, 1)
                 end
             until not slot
-        end
-        if subscribedEvents[event] then
             os.queueEvent("crafterAvailable")
+        end
+        if event == "timer" then
+            local slot = nextItem(altar)
+            if not slot then
+                os.queueEvent("crafterAvailable")
+            end
         end
     until event == "terminate"
 end
