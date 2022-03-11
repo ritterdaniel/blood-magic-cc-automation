@@ -132,8 +132,11 @@ local function inChestMonitor()
         local slot, itemName = nextItem(inChest)
         if slot then
             local item = inChest.getItemDetail(slot)
+            if item then
+                itemName = item.displayName
+            end
             debug("inChestMonitor - Item!")
-            os.queueEvent("inItemAvailable", {slot = slot, name = item.displayName})
+            os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
         end
         local event = coroutine.yield("timer")
     until event[1] == "terminate"
@@ -158,7 +161,10 @@ local function craftedItemTaker()
                 local slot, itemName = nextItem(altar)
                 if slot then
                     local item = altar.getItemDetail(slot)
-                    itemOutLabel:setText(item.displayName)
+                    if item then
+                        itemName = item.displayName
+                    end
+                    itemOutLabel:setText(itemName)
                     outChest.pullItems(altarName, slot, 1)
                 end
             until not slot
