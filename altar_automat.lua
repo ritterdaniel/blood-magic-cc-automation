@@ -93,7 +93,11 @@ local function crafter()
     local inItemAvailable = false
     local item = {}
     local crafterAvailable = false
-    local subscribedEvents = {"tankStatus", "inItemAvailable", "redstone", "crafterAvailable"}
+    local subscribedEvents = {
+        tankStatus = true,
+        inItemAvailable = true,
+        redstone = true,
+        crafterAvailable = true}
     repeat
         local event, param = coroutine.yield()
         if subscribedEvents[event] then
