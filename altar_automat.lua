@@ -10,7 +10,7 @@ local devices = {
 
 local config = {
     maxFillLevel = 10000,
-    tick = 2, -- seconds
+    tick = 5, -- seconds
     debug = false
 }
 
@@ -192,7 +192,7 @@ end
 
 local function pulseGenerator()
     repeat
-        os.startTimer(config.tankMonitorInterval)
+        os.startTimer(config.tick)
         local event = coroutine.yield("timer")
     until event == "terminate"
 end
