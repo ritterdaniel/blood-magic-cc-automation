@@ -49,6 +49,17 @@ local function nextItem(inventory)
     return nil, nil
 end
 
+local function asyncWait(seconds)
+    local timerId = os.startTimer(seconds)
+    repeat
+        local event, eventId = coroutine.yield("timer")
+        if event == "terminate" then
+            return false
+        end
+    until event == "timer" and eventId == timerId
+    return true
+end
+
 local function runAutomation()
     local monitor = peripheral.find("monitor")
     local altar = peripheral.wrap("bottom")
@@ -69,23 +80,24 @@ local function runAutomation()
 
     while true do
         repeat
-            local timerId = os.startTimer(.5)
-            repeat
-                local event, eventId = coroutine.yield("timer")
-            until event == "timer" and eventId == timerId
+            if not asyncWait(.5) then
+                return
+            end
         until tank.fillLevel() >= maxFillLevel
         local slot, itemName
         repeat
-            local timerId = os.startTimer(.5)
-            repeat
-                local event, eventId = coroutine.yield("timer")
-            until event == "timer" and eventId == timerId
+            if not asyncWait(.5) then
+                return
+            end
             slot, itemName = nextItem(inChest)
         until slot
         itemInLabel:setText(itemName)
         inChest.pushItems(altarName, slot, 1)
 
-        coroutine.yield("redstone")
+        local event =coroutine.yield("redstone")
+        if event == "terminate" then
+            return
+        end
         itemInLabel.setText(nil)
         repeat
             slot, itemName = nextItem(inChest)
@@ -122,10 +134,9 @@ local function monitorTankLevel()
     while true do
         local fillPercentage = round(tank.fillLevel() * 100 / maxFillLevel)
         progressBar:progress(fillPercentage)
-        local timerId = os.startTimer(1)
-        repeat
-            local event, eventId = coroutine.yield("timer")
-        until event == "timer" and eventId == timerId
+        if not asyncWait(.5) then
+            return
+        end
     end
 end
 
