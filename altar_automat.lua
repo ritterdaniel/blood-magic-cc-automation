@@ -10,6 +10,8 @@ local devices = {
 
 local config = {
     maxFillLevel = 10000,
+    tankMonitorInterval = 2, -- seconds
+    inChestMonitorInterval = 2, -- seconds
     debug = false
 }
 
@@ -119,14 +121,15 @@ local function inChestMonitor()
     local event
     repeat
         if event and event[2] == timerId then
+            debug("inChestMonitor - Event " .. event[1])
             local slot, itemName = nextItem(inChest)
             if slot then
+                debug("inChestMonitor - Item!")
                 os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
             end
         end
-        timerId = os.startTimer(1)
+        timerId = os.startTimer(config.inChestMonitorInterval)
         event = table.pack(coroutine.yield("timer"))
-        debug("inChestMonitor - Event " .. event[1])
     until event[1] == "terminate"
 end
 
@@ -163,16 +166,17 @@ local function tankLevelMonitor()
     local event
     repeat
         if event and event[2] == timerId then
+            debug("tankLevelMonitor - Event " .. event[1])
             local fillLevel = tank.fillLevel()
             if fillLevel ~= lastFillLevel then
                 local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
+                debug("tankLevelMonitor - fillLevel " .. fillPercentage)
                 os.queueEvent("tankStatus", {fillLevel = fillPercentage})
                 lastFillLevel = fillLevel
             end
         end
-        timerId = os.startTimer(1)
+        timerId = os.startTimer(config.tankMonitorInterval)
         event = table.pack(coroutine.yield("timer"))
-        debug("tankLevelMonitor - Event " .. event[1])
     until event[1] == "terminate"
 end
 
