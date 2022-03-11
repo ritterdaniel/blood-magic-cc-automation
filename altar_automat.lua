@@ -126,7 +126,7 @@ local function inChestMonitor()
         end
         timerId = os.startTimer(1)
         event = table.pack(coroutine.yield("timer"))
-        debug("inChestMonitor - Event " .. event)
+        debug("inChestMonitor - Event " .. event[1])
     until event[1] == "terminate"
 end
 
@@ -172,7 +172,7 @@ local function tankLevelMonitor()
         end
         timerId = os.startTimer(1)
         event = table.pack(coroutine.yield("timer"))
-        debug("tankLevelMonitor - Event " .. event)
+        debug("tankLevelMonitor - Event " .. event[1])
     until event[1] == "terminate"
 end
 
