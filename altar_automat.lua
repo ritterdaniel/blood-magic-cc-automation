@@ -70,18 +70,22 @@ local function runAutomation()
     while true do
         repeat
             local timerId = os.startTimer(.5)
-            local event, eventId = os.pullEvent("timer")
-        until eventId == timerId and tank.fillLevel() >= maxFillLevel
+            repeat
+                local event, eventId = coroutine.yield("timer")
+            until event == "timer" and eventId == timerId
+        until tank.fillLevel() >= maxFillLevel
         local slot, itemName
         repeat
             local timerId = os.startTimer(.5)
-            local event, eventId = os.pullEvent("timer")
+            repeat
+                local event, eventId = coroutine.yield("timer")
+            until event == "timer" and eventId == timerId
             slot, itemName = nextItem(inChest)
-        until eventId == timerId and slot
+        until slot
         itemInLabel:setText(itemName)
         inChest.pushItems(altarName, slot, 1)
 
-        os.pullEvent("redstone")
+        coroutine.yield("redstone")
         itemInLabel.setText(nil)
         repeat
             slot, itemName = nextItem(inChest)
@@ -118,11 +122,10 @@ local function monitorTankLevel()
     while true do
         local fillPercentage = round(tank.fillLevel() * 100 / maxFillLevel)
         progressBar:progress(fillPercentage)
-        local timerID = os.startTimer(.5)
-        local event, id
+        local timerId = os.startTimer(1)
         repeat
-            event, id = os.pullEvent("timer")
-        until id == timerID
+            local event, eventId = coroutine.yield("timer")
+        until event == "timer" and eventId == timerId
     end
 end
 
