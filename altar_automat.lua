@@ -10,8 +10,7 @@ local devices = {
 
 local config = {
     maxFillLevel = 10000,
-    tankMonitorInterval = 2, -- seconds
-    inChestMonitorInterval = 2, -- seconds
+    tick = 2, -- seconds
     debug = false
 }
 
@@ -113,7 +112,7 @@ local function crafter()
                 crafterAvailable = true
             end
 
-            debug("Crafter - FL:", fillLevel, " IA:", inItemAvailable .. " CA:", crafterAvailable)
+            debug("Crafter - FL:", fillLevel, " IA:", inItemAvailable, " CA:", crafterAvailable)
             if fillLevel == 100 and inItemAvailable and crafterAvailable then
                 itemInLabel:setText(item.name)
                 inChest.pushItems(altarName, item.slot, 1)
@@ -127,19 +126,14 @@ end
 local function inChestMonitor()
     local inChest = devices.inChest
 
-    local timerId = 0
-    local event
     repeat
-        if event and event[2] == timerId then
-            debug("inChestMonitor - Event " .. event[1])
-            local slot, itemName = nextItem(inChest)
-            if slot then
-                debug("inChestMonitor - Item!")
-                os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
-            end
+        debug("inChestMonitor - Event")
+        local slot, itemName = nextItem(inChest)
+        if slot then
+            debug("inChestMonitor - Item!")
+            os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
         end
-        timerId = os.startTimer(config.inChestMonitorInterval)
-        event = table.pack(coroutine.yield("timer"))
+        local event = coroutine.yield("timer")
     until event[1] == "terminate"
 end
 
@@ -172,19 +166,12 @@ local function tankLevelMonitor()
         return
     end
 
-    local timerId = 0
-    local event
     repeat
-        if event[2] == timerId then
-            debug("tankLevelMonitor - Event " .. event[1])
-            local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
-            debug("tankLevelMonitor - fillLevel " .. fillPercentage)
-            os.queueEvent("tankStatus", {fillLevel = fillPercentage})
-        end
-        timerId = os.startTimer(config.tankMonitorInterval)
-        debug("tankLevelMonitor - Send timer event")
-        event = table.pack(coroutine.yield("timer"))
-    until event[1] == "terminate"
+        local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
+        debug("tankLevelMonitor - fillLevel " .. fillPercentage)
+        os.queueEvent("tankStatus", {fillLevel = fillPercentage})
+        local event = coroutine.yield("timer")
+    until event == "terminate"
 end
 
 local function tankDisplay()
@@ -203,11 +190,19 @@ local function tankDisplay()
     until event == "terminate"
 end
 
+local function pulseGenerator()
+    repeat
+        os.startTimer(config.tankMonitorInterval)
+        local event = coroutine.yield("timer")
+    until event == "terminate"
+end
+
 initUi()
-parallel.waitForAll(
+parallel.waitForAny(
     tankLevelMonitor,
     tankDisplay,
     craftedItemTaker,
     inChestMonitor,
-    crafter
+    crafter,
+    pulseGenerator
 )
