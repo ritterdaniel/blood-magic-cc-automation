@@ -92,24 +92,30 @@ local function crafter()
     local fillLevel = 0
     local inItemAvailable = false
     local item = {}
-
+    local crafterAvailable = false
+    local subscribedEvents = {"tankStatus", "inItemAvailable", "redstone", "crafterAvailable"}
     repeat
         local event, param = coroutine.yield()
-        debug("Crafter - Event " .. event)
-        if event == "tankStatus" then
-            fillLevel = param.fillLevel
-        elseif event == "inItemAvailable" then
-            item = param
-            inItemAvailable = true
-        elseif event == "redstone" then
-            itemInLabel.setText(nil)
-        end
+        if subscribedEvents[event] then
+            debug("Crafter - Event - " .. event)
+            if event == "tankStatus" then
+                fillLevel = param.fillLevel
+            elseif event == "inItemAvailable" then
+                item = param
+                inItemAvailable = true
+            elseif event == "redstone" then
+                itemInLabel.setText(nil)
+            elseif event == "crafterAvailable" then
+                crafterAvailable = true
+            end
 
-        if event ~= "terminate" and fillLevel == 100 and inItemAvailable then
-            itemInLabel:setText(item.name)
-            inChest.pushItems(altarName, item.slot, 1)
-            inItemAvailable = false
-            fillLevel = 0
+            debug("Crafter - FL:" .. fillLevel .. " IA:" .. inItemAvailable .. " CA:" .. crafterAvailable)
+            if fillLevel == 100 and inItemAvailable and crafterAvailable then
+                itemInLabel:setText(item.name)
+                inChest.pushItems(altarName, item.slot, 1)
+                inItemAvailable = false
+                fillLevel = 0
+            end
         end
     until event == "terminate"
 end
@@ -142,6 +148,7 @@ local function craftedItemTaker()
     itemOutLabel:setText("None")
 
     repeat
+        os.queueEvent("crafterAvailable")
         local event = coroutine.yield("redstone")
         debug("craftedItemTaker - Event " .. event)
         repeat
