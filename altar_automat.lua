@@ -9,8 +9,12 @@ local devices = {
 }
 
 local config = {
-    maxFillLevel = 10000
+    maxFillLevel = 10000,
+    debug = false
 }
+
+local params = {...}
+config["debug"] = #params >= 1 and params[1] == "-d"
 
 local function round(x)
     local f = math.floor(x)
@@ -69,6 +73,12 @@ local function nextItem(inventory)
     return nil, nil
 end
 
+local function debug(...)
+    if config.debug then
+        print(...)
+    end
+end
+
 local function crafter()
     local monitor = devices.monitor
     local altarName = peripheral.getName(devices.altar)
@@ -83,6 +93,7 @@ local function crafter()
 
     repeat
         local event, param = coroutine.yield()
+        debug("Crafter - Event " .. event)
         if event == "tankStatus" then
             fillLevel = param.fillLevel
         elseif event == "inItemAvailable" then
@@ -115,6 +126,7 @@ local function inChestMonitor()
         end
         timerId = os.startTimer(1)
         event = table.pack(coroutine.yield("timer"))
+        debug("inChestMonitor - Event " .. event)
     until event[1] == "terminate"
 end
 
@@ -128,6 +140,7 @@ local function craftedItemTaker()
 
     repeat
         local event = coroutine.yield("redstone")
+        debug("craftedItemTaker - Event " .. event)
         repeat
             local slot, itemName = nextItem(altar)
             if slot then
@@ -159,6 +172,7 @@ local function tankLevelMonitor()
         end
         timerId = os.startTimer(1)
         event = table.pack(coroutine.yield("timer"))
+        debug("tankLevelMonitor - Event " .. event)
     until event[1] == "terminate"
 end
 
@@ -169,6 +183,7 @@ local function tankDisplay()
 
     repeat
         local event, tankStatus = coroutine.yield("tankStatus")
+        debug("tankDisplay - Event " .. event)
         if event == "fillLevel" then
             progressBar:progress(tankStatus.fillLevel)
         end
