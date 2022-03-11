@@ -6,7 +6,7 @@ while true do
     monitor.setBackgroundColor(colors.black)
     monitor.clear()
     local pb = ProgressBar:new(monitor, 3)
-    pb:reset()
+    pb:init()
     for p = 0, 100, 10 do
         os.sleep(.5)
         pb:progress(p)

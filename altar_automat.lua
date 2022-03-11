@@ -15,16 +15,12 @@ local function initUi()
     label.backgroundColor = colors.green
     label:setText("Altar Fill Level")
 
-    label = TextBox:new(monitor, 1, 5, 18)
+    label = TextBox:new(monitor, 1, 6, 18)
     label.backgroundColor = colors.green
-    label:setText(" ")
-
-    label = TextBox:new(monitor, 1, 7, 18)
-    label.textColor = colors.green
     label:setText("Current Item IN")
 
-    label = TextBox:new(monitor, 1, 10, 18)
-    label.textColor = colors.green
+    label = TextBox:new(monitor, 1, 8, 18)
+    label.backgroundColor = colors.green
     label:setText("Last Item OUT")
 
     label = TextBox:new(monitor, 1, 12, 18)
@@ -66,9 +62,9 @@ local function runAutomation()
         return
     end
 
-    local itemInLabel = TextBox:new(monitor, 1, 8, 18)
+    local itemInLabel = TextBox:new(monitor, 1, 7, 18)
     itemInLabel:setText("None")
-    local itemOutLabel = TextBox:new(monitor, 1, 11, 18)
+    local itemOutLabel = TextBox:new(monitor, 1, 9, 18)
     itemOutLabel:setText("None")
 
     while true do
