@@ -1,8 +1,28 @@
 local TextBox = require("ui/textbox")
 local ProgressBar = require("ui/progressbar")
 
+local devices = {
+    monitor = peripheral.find("monitor"),
+    altar = peripheral.wrap("bottom"),
+    inChest = peripheral.wrap("back"),
+    outChest = peripheral.wrap("left"),
+}
+
+local config = {
+    maxFillLevel = 10000
+}
+
+local function round(x)
+    local f = math.floor(x)
+    if (x == f) or (x % 2.0 == 0.5) then
+        return f
+    else
+        return math.floor(x + 0.5)
+    end
+end
+
 local function initUi()
-    local monitor = peripheral.find("monitor")
+    local monitor = devices.monitor
     monitor.setBackgroundColor(colors.black)
     monitor.clear()
     local label = TextBox:new(monitor, 1, 1, 18)
@@ -49,99 +69,117 @@ local function nextItem(inventory)
     return nil, nil
 end
 
-local function asyncWait(seconds)
-    local timerId = os.startTimer(seconds)
-    repeat
-        local event, eventId = coroutine.yield("timer")
-        if event == "terminate" then
-            return false
-        end
-    until event == "timer" and eventId == timerId
-    return true
-end
-
-local function runAutomation()
-    local monitor = peripheral.find("monitor")
-    local altar = peripheral.wrap("bottom")
-    local altarName = peripheral.getName(altar)
-    local inChest = peripheral.wrap("back")
-    local outChest = peripheral.wrap("left")
-    local maxFillLevel = 10000
-    local tank = getTank(altar, 1)
-    if tank == nil then
-        print("No tank found")
-        return
-    end
+local function crafter()
+    local monitor = devices.monitor
+    local altarName = peripheral.getName(devices.altar)
+    local inChest = devices.inChest
 
     local itemInLabel = TextBox:new(monitor, 1, 7, 18)
-    itemInLabel:setText("None")
+    itemInLabel:setText(nil)
+
+    local fillLevel = 0
+    local inItemAvailable = false
+    local item = {}
+
+    repeat
+        local event, param = coroutine.yield()
+        if event == "tankStatus" then
+            fillLevel = param.fillLevel
+        elseif event == "inItemAvailable" then
+            item = param
+            inItemAvailable = true
+        elseif event == "redstone" then
+            itemInLabel.setText(nil)
+        end
+
+        if event ~= "terminate" and fillLevel == 100 and inItemAvailable then
+            itemInLabel:setText(item.name)
+            inChest.pushItems(altarName, item.slot, 1)
+            inItemAvailable = false
+            fillLevel = 0
+        end
+    until event == "terminate"
+end
+
+local function inChestMonitor()
+    local inChest = devices.inChest
+
+    local timerId = 0
+    local event
+    repeat
+        if event and event[2] == timerId then
+            local slot, itemName = nextItem(inChest)
+            if slot then
+                os.queueEvent("inItemAvailable", {slot = slot, name = itemName})
+            end
+        end
+        timerId = os.startTimer(1)
+        event = table.pack(coroutine.yield("timer"))
+    until event[1] == "terminate"
+end
+
+local function craftedItemTaker()
+    local monitor = devices.monitor
+    local altar = devices.altar
+    local altarName = peripheral.getName(altar)
+    local outChest = devices.outChest
     local itemOutLabel = TextBox:new(monitor, 1, 10, 18)
     itemOutLabel:setText("None")
 
-    while true do
+    repeat
+        local event = coroutine.yield("redstone")
         repeat
-            if not asyncWait(.5) then
-                return
-            end
-        until tank.fillLevel() >= maxFillLevel
-        local slot, itemName
-        repeat
-            if not asyncWait(.5) then
-                return
-            end
-            slot, itemName = nextItem(inChest)
-        until slot
-        itemInLabel:setText(itemName)
-        inChest.pushItems(altarName, slot, 1)
-
-        local event =coroutine.yield("redstone")
-        if event == "terminate" then
-            return
-        end
-        itemInLabel.setText(nil)
-        repeat
-            slot, itemName = nextItem(inChest)
+            local slot, itemName = nextItem(altar)
             if slot then
                 itemOutLabel:setText(itemName)
                 outChest.pullItems(altarName, slot, 1)
             end
         until not slot
-    end
+    until event == "terminate"
 end
 
-local function round(x)
-    local f = math.floor(x)
-    if (x == f) or (x % 2.0 == 0.5) then
-        return f
-    else
-        return math.floor(x + 0.5)
-    end
-end
-
-local function monitorTankLevel()
-    local monitor = peripheral.find("monitor")
-    local altar = peripheral.wrap("bottom")
-    local tank = getTank(altar, 1)
-    local maxFillLevel = 10000
+local function tankLevelMonitor()
+    local tank = getTank(devices.altar, 1)
     if tank == nil then
         print("No tank found")
         return
     end
 
+    local lastFillLevel = 0
+    local timerId = 0
+    local event
+    repeat
+        if event and event[2] == timerId then
+            local fillLevel = tank.fillLevel()
+            if fillLevel ~= lastFillLevel then
+                local fillPercentage = round(tank.fillLevel() * 100 / config.maxFillLevel)
+                os.queueEvent("tankStatus", {fillLevel = fillPercentage})
+                lastFillLevel = fillLevel
+            end
+        end
+        timerId = os.startTimer(1)
+        event = table.pack(coroutine.yield("timer"))
+    until event[1] == "terminate"
+end
+
+local function tankDisplay()
+    local monitor = devices.monitor
     local progressBar = ProgressBar:new(monitor, 4)
     progressBar:init()
 
-    while true do
-        local fillPercentage = round(tank.fillLevel() * 100 / maxFillLevel)
-        progressBar:progress(fillPercentage)
-        if not asyncWait(.5) then
-            return
+    repeat
+        local event, tankStatus = coroutine.yield("tankStatus")
+        if event == "fillLevel" then
+            progressBar:progress(tankStatus.fillLevel)
         end
-    end
+    until event == "terminate"
 end
 
 initUi()
-parallel.waitForAll(monitorTankLevel(), runAutomation())
-
-
-
+parallel.waitForAll(
+    tankLevelMonitor,
+    tankDisplay,
+    craftedItemTaker,
+    inChestMonitor,
+    crafter
+)
